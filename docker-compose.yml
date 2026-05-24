@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  register:
+    image: ${DOCKER_REGISTRY-}register
+    ports:
+      - "${REGISTER_API_PORT}:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Server=register_db,1433;Database=${DB_NAME_REGISTER};User Id=sa;Password=${SA_PASSWORD_REGISTER};TrustServerCertificate=True
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+    build:
+      context: .
+      dockerfile: register/Dockerfile
+    depends_on:
+      - register_db
+
+  register_db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD_REGISTER}
+    ports:
+      - "${DB_PORT_REGISTER}:1433"
+    volumes:
+      - mssql_dev_data:/var/opt/mssql
+
+volumes:
+  mssql_dev_data:
