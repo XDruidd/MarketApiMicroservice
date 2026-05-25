@@ -401,3 +401,5 @@ FodyWeavers.xsd
 *.sln.iml
 .env
 /.idea
+User/appsettings.json
+Product/appsettings.json

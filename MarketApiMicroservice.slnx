@@ -1,3 +1,5 @@
 <Solution>
+  <Project Path="Product/Product.csproj" Id="69a9cdac-dceb-47b8-aee8-6d0351e79d64" />
   <Project Path="Register/Register.csproj" Id="04806c78-0e8b-4dec-8c9b-3e7ab425f44c" />
+  <Project Path="User/User.csproj" Id="f5994a35-28b1-4fb6-ac4b-aa2220d79c28" />
 </Solution>
