@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Register.Migrations
+namespace Auth.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
     [Migration("20260524231214_InitialCreate")]

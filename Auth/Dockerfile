@@ -12,19 +12,19 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Register/Register.csproj", "Register/"]
-RUN dotnet restore "./Register/Register.csproj"
+COPY ["Auth/Auth.csproj", "Auth/"]
+RUN dotnet restore "./Auth/Auth.csproj"
 COPY . .
-WORKDIR "/src/Register"
-RUN dotnet build "./Register.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Auth"
+RUN dotnet build "./Auth.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Register.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Auth.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Register.dll"]
+ENTRYPOINT ["dotnet", "Auth.dll"]

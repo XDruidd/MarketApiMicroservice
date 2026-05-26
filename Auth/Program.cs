@@ -43,14 +43,13 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
-
 
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<TokenService>();
-
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

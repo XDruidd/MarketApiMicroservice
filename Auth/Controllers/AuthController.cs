@@ -4,7 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using Register.DTOs;
+using Auth.DTOs;
 
 namespace Market.Controllers;
 
@@ -45,7 +45,7 @@ public class AuthController : ControllerBase
                 {
                     var roles = await _userManager.GetRolesAsync(identityUser);
                     var token = _tokenService.CreateJWTTokenAsync(identityUser, roles);
-                    return Ok(new { Message = "Register successful", Token = token });
+                    return Ok(new { Message = "Auth successful", Token = token });
                 }
 
                 return BadRequest(new

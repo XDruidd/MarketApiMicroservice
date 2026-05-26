@@ -1,6 +1,8 @@
 using System.Text;
+using Asp.Versioning;
 using Market.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,8 +23,25 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader();
     });
 });
+var apiVersioningBuilder = builder.Services.AddApiVersioning(options =>
+{
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.ReportApiVersions = true;
 
+    options.ApiVersionReader = ApiVersionReader.Combine(
+        new HeaderApiVersionReader("x-version") 
+    );
+});
+
+apiVersioningBuilder.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -42,6 +61,21 @@ builder.Services
     });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AuthDbContext>();
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    { 
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "migration error");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

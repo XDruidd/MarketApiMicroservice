@@ -10,33 +10,34 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - register
+      - auth
       - profile
+      - product
 
-  register:
-    image: market-register-api
+  auth:
+    image: market-auth-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
-      - ConnectionStrings__DefaultConnection=Server=register_db,1433;Database=${DB_NAME_REGISTER};User Id=sa;Password=${SA_PASSWORD_REGISTER};TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Server=auth_db,1433;Database=${DB_NAME_AUTH};User Id=sa;Password=${SA_PASSWORD_AUTH};TrustServerCertificate=True
       - Jwt__Key=${JWT_KEY}
       - Jwt__Issuer=${JWT_ISSUER}
       - Jwt__Audience=${JWT_AUDIENCE}
     build:
       context: .
-      dockerfile: register/Dockerfile
+      dockerfile: auth/Dockerfile
     depends_on:
-      - register_db
+      - auth_db
 
-  register_db:
+  auth_db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: ${SA_PASSWORD_REGISTER}
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD_AUTH}
     ports:
-      - "${DB_PORT_REGISTER}:1433"
+      - "${DB_PORT_AUTH}:1433"
     volumes:
-      - mssql_register_data:/var/opt/mssql
+      - mssql_auth_data:/var/opt/mssql
   #==========================================================
   # 2 User Microservice
   #==========================================================
@@ -93,6 +94,6 @@ services:
       - mssql_product_data:/var/opt/mssql
 
 volumes:
-  mssql_register_data:
+  mssql_auth_data:
   mssql_profile_data:
   mssql_product_data:
