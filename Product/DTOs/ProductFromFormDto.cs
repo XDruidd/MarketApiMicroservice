@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Product.DTOs;
 
-public class ProductFromBodyDto
+public class ProductFromFormDto
 {
     [Required]
     [MinLength(3)]

@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Product.Data;
 using Product.DTOs;
@@ -8,10 +9,12 @@ namespace Product.Services;
 public class ProductServices : IProductServices
 {
     private readonly ProductDbContext _dbContext;
-
-    public ProductServices(ProductDbContext dbContext)
+    private readonly IS3Service _s3Service;
+    
+    public ProductServices(ProductDbContext dbContext, IS3Service s3Service)
     {
         _dbContext = dbContext;
+        _s3Service = s3Service;
     }
     
     public async Task<List<ProductDto>> GetProducts(int pageNumber = 1, int pageSize = 10)
@@ -43,31 +46,10 @@ public class ProductServices : IProductServices
 
         return totalPages;
     }
-
-    private async Task<string> UploudImg(ProductFromBodyDto product)
+    
+    public async Task<FullProductDto> PostProduct(ProductFromFormDto product)
     {
-        var uploadsFolder = Path.Combine(
-            Directory.GetCurrentDirectory(),
-            "Uploads"
-        );
-        
-        if (!Directory.Exists(uploadsFolder))
-            Directory.CreateDirectory(uploadsFolder);
-        
-        var fileName = Guid.NewGuid() + 
-                       Path.GetExtension(product.Image.FileName);
-        var filePath = Path.Combine(uploadsFolder, fileName);
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        { 
-            await product.Image.CopyToAsync(stream);
-        }
-        
-        var imageUrl = "/Product/image/" + fileName;
-        return imageUrl;
-    }
-    public async Task<UpdateProductIdDto> PostProduct(ProductFromBodyDto product)
-    {
-        var imageUrl = await UploudImg(product);
+        var imageUrl = await _s3Service.UploadFileAsync(product.Image);
         
         var newProduct = await _dbContext.ProductItems.AddAsync(new ProductItem() {
             Name = product.Name,
@@ -78,7 +60,7 @@ public class ProductServices : IProductServices
         });
         await _dbContext.SaveChangesAsync();
         
-        return new UpdateProductIdDto
+        return new FullProductDto
         {
             Id = newProduct.Entity.Id,
             Name = newProduct.Entity.Name,
@@ -113,7 +95,7 @@ public class ProductServices : IProductServices
         if (update.Name != null) { product.Name = update.Name;}
         if (update.Price.HasValue) { product.Price = update.Price.Value;}
         if (update.QuantityInStock.HasValue) {product.QuantityInStock = update.QuantityInStock.Value;}
-
+        if (update.Image is { Length: > 0 }) {await _s3Service.UpdateFileAsync(product.ImgPath, update.Image);}
         if (update.IsActive.HasValue)
         {
             product.IsActive = update.IsActive.Value;

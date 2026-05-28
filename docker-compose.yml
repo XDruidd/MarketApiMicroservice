@@ -77,6 +77,9 @@ services:
       - Jwt__Key=${JWT_KEY}
       - Jwt__Issuer=${JWT_ISSUER}
       - Jwt__Audience=${JWT_AUDIENCE}
+      - AWS_BUCKET_PRODUCT=${AWS_BUCKET_PRODUCT}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESSKEY}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRETKEY}
     build:
       context: .
       dockerfile: Product/Dockerfile

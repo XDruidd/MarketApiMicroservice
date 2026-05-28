@@ -16,12 +16,12 @@ COPY ["Product/Product.csproj", "Product/"]
 RUN dotnet restore "./Product/Product.csproj"
 COPY . .
 WORKDIR "/src/Product"
-RUN dotnet build "./Product.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./Product.csproj" -c $BUILD_CONFIGURATION -o /app/build -p:SixLaborsLicenseKey=OpenSource
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Product.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Product.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false -p:SixLaborsLicenseKey=OpenSource
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final

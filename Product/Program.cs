@@ -7,6 +7,10 @@ using Microsoft.IdentityModel.Tokens;
 using Product.Data;
 using Product.Services;
 using Product.Services.Inteface;
+using DotNetEnv;
+using System.Security.Claims;
+
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,11 +54,15 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IProductServices, ProductServices>();
+builder.Services.AddAWSService<Amazon.S3.IAmazonS3>();
+builder.Services.AddScoped<IS3Service, S3Service>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;
+        
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -65,7 +73,9 @@ builder.Services
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+            
+            RoleClaimType = "role"   
         };
     });
 
@@ -94,6 +104,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();

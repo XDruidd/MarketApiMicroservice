@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Product.DTOs;
 
-public class UpdateProductDto
+public class FullProductDto
 {
+    public int Id { get; set; }
+
     [MinLength(3)]
     public string? Name { get; set; }
     
@@ -13,7 +14,8 @@ public class UpdateProductDto
     
     [Range(0, int.MaxValue)]
     public int? QuantityInStock { get; set; }
-    public IFormFile? Image { get; set; }
+    
+    public string ImgPatch{ get; set; }
     
     public bool? IsActive { get; set; } = true;
 }

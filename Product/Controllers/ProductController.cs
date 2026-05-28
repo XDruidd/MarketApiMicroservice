@@ -18,27 +18,6 @@ public class ProductController : ControllerBase
         _productServices = productServices;
     }
     
-    [HttpGet("image/{fileName}")]
-    public IActionResult GetImage(string fileName)
-    {
-        var path = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", fileName);
-        if (!System.IO.File.Exists(path))
-        {
-            return NotFound();
-        }
-
-        var mime = Path.GetExtension(fileName).ToLower() switch
-        {
-            ".jpg" or ".jpeg" => "image/jpeg",
-            ".png" => "image/png",
-            _ => "application/octet-stream"
-        };
-
-        var fileBytes = System.IO.File.ReadAllBytes(path);
-        return File(fileBytes, mime);
-    }
-
-
     [HttpGet("page/count")]
     public async Task<IActionResult> GetPage()
     {
@@ -59,7 +38,7 @@ public class ProductController : ControllerBase
     
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Post([FromForm] ProductFromBodyDto product)
+    public async Task<IActionResult> Post([FromForm] ProductFromFormDto product)
     {
         if (!ModelState.IsValid)
         {
@@ -94,16 +73,28 @@ public class ProductController : ControllerBase
         return BadRequest(new { message = "Not found" });
     }
 
-    [HttpPatch("{pageId}")]
+    [HttpPatch("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Patch(int pageId, [FromBody] UpdateProductDto product)
+    public async Task<IActionResult> Patch(int id, [FromForm] UpdateProductDto product)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-     
-        var path = await _productServices.PathProduct(pageId, product);
+        if (product.Image == null || product.Image.Length == 0)
+        {
+            return BadRequest();
+        }
+        var allowedTypes = new[] { "image/jpeg", "image/png"};
+        if (!allowedTypes.Contains(product.Image.ContentType))
+            return BadRequest("Not a valid image type");
+
+        if (product.Image.Length > 5 * 1024 * 1024)
+        {
+            return BadRequest("Too long image size");
+        }
+        
+        var path = await _productServices.PathProduct(id, product);
         if (path) { return Ok(new {message = "Updated"}); }
         
         return BadRequest();
