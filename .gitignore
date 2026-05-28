@@ -403,3 +403,4 @@ FodyWeavers.xsd
 /.idea
 User/appsettings.json
 Product/appsettings.json
+Profile/appsettings.json

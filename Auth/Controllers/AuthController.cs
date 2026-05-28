@@ -50,14 +50,14 @@ public class AuthController : ControllerBase
 
                 return BadRequest(new
                 {
-                    Message = "User registration is successfull but cannot assign specifiedrole to it!",
+                    Message = "Profile registration is successfull but cannot assign specifiedrole to it!",
                     Errors = identityResult.Errors.Select(e => e.Description)
                 });
             }
 
             return BadRequest(new
             {
-                Message = "User registration failed!",
+                Message = "Profile registration failed!",
                 Errors = identityResult.Errors.Select(e => e.Description)
             });
 
@@ -91,7 +91,7 @@ public class AuthController : ControllerBase
                         return Ok(new { Message = "Login successful", Token = token});
                     }
 
-                    return Unauthorized(new { Message = "User has no roles assigned contact admin" });
+                    return Unauthorized(new { Message = "Profile has no roles assigned contact admin" });
 
                 }
                 return Unauthorized(new { Message = "Invalid password" });

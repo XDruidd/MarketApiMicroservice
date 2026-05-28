@@ -5,8 +5,8 @@ services:
     image: nginx:alpine
     container_name: api_gateway
     ports:
-      - "80:80"   # HTTP
-      - "443:443" # HTTPS (для деплоя с SSL)
+      - "80:80"   
+      - "443:443" 
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
@@ -14,15 +14,17 @@ services:
       - profile
       - product
 
+  #==========================================================
+  # 1 Auth Microservice
+  #==========================================================
   auth:
     image: market-auth-api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
-      - ConnectionStrings__DefaultConnection=Server=auth_db,1433;Database=${DB_NAME_AUTH};User Id=sa;Password=${SA_PASSWORD_AUTH};TrustServerCertificate=True
-      - Jwt__Key=${JWT_KEY}
-      - Jwt__Issuer=${JWT_ISSUER}
-      - Jwt__Audience=${JWT_AUDIENCE}
+      #удалить при проде
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESSKEY}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRETKEY}
     build:
       context: .
       dockerfile: auth/Dockerfile
@@ -38,21 +40,21 @@ services:
       - "${DB_PORT_AUTH}:1433"
     volumes:
       - mssql_auth_data:/var/opt/mssql
+
   #==========================================================
   # 2 User Microservice
   #==========================================================
   profile:
     image: market-profile-api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
-      - ConnectionStrings__DefaultConnection=Server=profile_db,1433;Database=${DB_NAME_PROFILE};User Id=sa;Password=${SA_PASSWORD_PROFILE};TrustServerCertificate=True
-      - Jwt__Key=${JWT_KEY}
-      - Jwt__Issuer=${JWT_ISSUER}
-      - Jwt__Audience=${JWT_AUDIENCE}
+      #удалить при проде
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESSKEY}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRETKEY}
     build:
       context: .
-      dockerfile: User/Dockerfile
+      dockerfile: profile/Dockerfile
     depends_on:
       - profile_db
 
@@ -65,21 +67,19 @@ services:
       - "${DB_PORT_PROFILE}:1433"
     volumes:
       - mssql_profile_data:/var/opt/mssql
+
   #==========================================================
   # 3 Product
   #==========================================================
   product:
     image: market-product-api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
-      - ConnectionStrings__DefaultConnection=Server=product_db,1433;Database=${DB_NAME_PRODUCT};User Id=sa;Password=${SA_PASSWORD_PRODUCT};TrustServerCertificate=True
-      - Jwt__Key=${JWT_KEY}
-      - Jwt__Issuer=${JWT_ISSUER}
-      - Jwt__Audience=${JWT_AUDIENCE}
-      - AWS_BUCKET_PRODUCT=${AWS_BUCKET_PRODUCT}
+      #удалить при проде
       - AWS_ACCESS_KEY_ID=${AWS_ACCESSKEY}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRETKEY}
+      - AWS_BUCKET_PRODUCT=${AWS_BUCKET_PRODUCT}
     build:
       context: .
       dockerfile: Product/Dockerfile

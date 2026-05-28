@@ -1,4 +1,8 @@
 using System.Text;
+using System.Text.Json;
+using Amazon;
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
 using Asp.Versioning;
 using Market.Configuration;
 using Market.Controllers;
@@ -10,7 +14,33 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+var secretsToLoad = new[] { "prod/Market/auth", "prod/Market/jwt" };
 
+var client = new AmazonSecretsManagerClient(RegionEndpoint.EUNorth1);
+
+foreach (var secretName in secretsToLoad)
+{
+    try
+    {
+        var request = new GetSecretValueRequest { SecretId = secretName };
+        var response = client.GetSecretValueAsync(request).GetAwaiter().GetResult();
+
+        if (!string.IsNullOrEmpty(response.SecretString))
+        {
+            var secretData = JsonSerializer.Deserialize<Dictionary<string, string>>(response.SecretString);
+
+            if (secretData != null)
+            {
+                builder.Configuration.AddInMemoryCollection(secretData!);
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex.Message);
+        throw;
+    }
+}
 
 builder.Services.AddControllers();
 var apiVersioningBuilder = builder.Services.AddApiVersioning(options =>

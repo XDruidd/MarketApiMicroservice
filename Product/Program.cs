@@ -8,13 +8,44 @@ using Product.Data;
 using Product.Services;
 using Product.Services.Inteface;
 using DotNetEnv;
-using System.Security.Claims;
+using System.Text.Json;
+using Amazon;
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
 
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+var secretsToLoad = new[] { "prod/Market/product/s3", "prod/Market/jwt" };
+
+var client = new AmazonSecretsManagerClient(RegionEndpoint.EUNorth1); 
+
+foreach (var secretName in secretsToLoad)
+{
+    try
+    {
+        var request = new GetSecretValueRequest { SecretId = secretName };
+        var response = client.GetSecretValueAsync(request).GetAwaiter().GetResult();
+
+        if (!string.IsNullOrEmpty(response.SecretString))
+        {
+            var secretData = JsonSerializer.Deserialize<Dictionary<string, string>>(response.SecretString);
+
+            if (secretData != null)
+            {
+                builder.Configuration.AddInMemoryCollection(secretData!);
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex.Message);
+        throw;
+    }
+}
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

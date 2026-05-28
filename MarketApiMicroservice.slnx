@@ -1,5 +1,5 @@
 <Solution>
   <Project Path="Auth\Auth.csproj" />
   <Project Path="Product/Product.csproj" />
-  <Project Path="User/User.csproj" />
+  <Project Path="Profile\Profile.csproj" />
 </Solution>
